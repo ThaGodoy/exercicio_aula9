@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Exercicio aula9 by ThaGodoy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Exercicio aula9</h1>
+      <h2 class="project-tagline"></h2>
+      <a href="https://github.com/ThaGodoy/exercicio_aula9" class="btn">View on GitHub</a>
+      <a href="https://github.com/ThaGodoy/exercicio_aula9/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/ThaGodoy/exercicio_aula9/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <p><strong>Aluna: Thaís Fernanda Godoy</strong></p>
+
+<h2>
+<a id="exercÍcio-aula-9" class="anchor" href="#exerc%C3%8Dcio-aula-9" aria-hidden="true"><span class="octicon octicon-link"></span></a><strong>EXERCÍCIO AULA 9</strong>
+</h2>
+
+<p>2) Faça mapeamento de QTL’s no conjunto de dados Mouse Data usando a aproximação de Haley-Knott.
+• Use probabilidades de dois pontos para fazer inferências sobre eventual QTL no intervalo entre dois marcadores (usando a “famosa” tabela discutida durante a aula).
+• Lembre-se que em situações reais o ideal seria usar probabilidades multiponto; tal estratégia não será usada no exercício apenas por razões didáticas. Use somente adaptações de códigos em R usados em listas anteriores e apresentados em aula (função lm(), etc), ou seja, não use o R/qtl ou programa similar para fazer as análises, mas sim funções do R desenvolvidas para realizar regressões lineares.
+• Se preferir, use alguma planilha eletrônica para calcular as probabilidades condicionais. Apresente o resultado em um gráfico, e também uma tabela com o(s) valor(es) do(s) QTL(s) mapeado(s), de forma semelhante ao apresentado na literatura (efeitos, LOD, etc).
+• Assuma que o threshold é 1.43 (LOD). O objetivo do exercício é entender os fundamentos estatísticos e de programação envolvidos, e não os resultados em si.
+• O exercício pode ser feito pelo mesmo grupo que analisou os dados de Mimulus.</p>
+
+<p>Os comandos utilizados foram os seguintes:</p>
+
+<div class="highlight highlight-javascript"><pre>rm(list <span class="pl-k">=</span> ls(all <span class="pl-k">=</span> <span class="pl-c1">TRUE</span>))
+mouse <span class="pl-k">&lt;-</span> read.csv(<span class="pl-s"><span class="pl-pds">"</span>E:/ESALQ/POS_GRADUACAO_ESALQ_USP/DOUTORADO_2014/disciplinas/Biometria de Marcadores Gen/Aula 2/augusto-garcia-R-Introduction-7224f6a/mouse.csv<span class="pl-pds">"</span></span>)
+mouse2<span class="pl-k">&lt;-</span>mouse[<span class="pl-c1">2</span><span class="pl-k">:</span><span class="pl-c1">16</span>]
+map<span class="pl-k">&lt;-</span>c(<span class="pl-c1">0</span>, <span class="pl-c1">6.8</span>, <span class="pl-c1">1.0</span>, <span class="pl-c1">1.0</span>, <span class="pl-c1">2.9</span>, <span class="pl-c1">2.9</span>, <span class="pl-c1">4.9</span>, <span class="pl-c1">3.9</span>, <span class="pl-c1">1.0</span>, <span class="pl-c1">1.9</span>, <span class="pl-c1">1.9</span>, <span class="pl-c1">2.9</span>, <span class="pl-c1">6.8</span>, <span class="pl-c1">10.8</span>)
+map<span class="pl-k">&lt;-</span>cumsum(map)
+map
+k_mf<span class="pl-k">&lt;-</span><span class="pl-k">function</span>(<span class="pl-smi">m</span>)
+  <span class="pl-c1">0.5</span> <span class="pl-k">*</span> tanh(m/<span class="pl-c1">50</span>)
+ret.pred<span class="pl-k">&lt;-</span><span class="pl-k">function</span>(<span class="pl-smi">x</span>, <span class="pl-smi">y</span>, <span class="pl-smi">theta</span>){
+  <span class="pl-k">if</span>(x<span class="pl-k">==</span><span class="pl-c1">1</span> <span class="pl-k">&amp;</span> y<span class="pl-k">==</span><span class="pl-c1">1</span>) <span class="pl-k">return</span>(<span class="pl-c1">1</span>)
+  <span class="pl-k">else</span> <span class="pl-k">if</span>(x<span class="pl-k">==</span><span class="pl-c1">1</span> <span class="pl-k">&amp;</span> y<span class="pl-k">==</span><span class="pl-c1">0</span>) <span class="pl-k">return</span>(<span class="pl-c1">1</span><span class="pl-k">-</span>theta)
+  <span class="pl-k">else</span> <span class="pl-k">if</span>(x<span class="pl-k">==</span><span class="pl-c1">0</span> <span class="pl-k">&amp;</span> y<span class="pl-k">==</span><span class="pl-c1">1</span>) <span class="pl-k">return</span>(theta)
+  <span class="pl-k">else</span> <span class="pl-k">if</span>(x<span class="pl-k">==</span><span class="pl-c1">0</span> <span class="pl-k">&amp;</span> y<span class="pl-k">==</span><span class="pl-c1">0</span>) <span class="pl-k">return</span>(<span class="pl-c1">0</span>)
+  <span class="pl-k">else</span> stop
+}
+interv<span class="pl-k">&lt;-</span>diff(map)
+res<span class="pl-k">&lt;-</span>numeric()
+<span class="pl-k">for</span>(k <span class="pl-k">in</span> <span class="pl-c1">2</span><span class="pl-k">:</span>(ncol(mouse2)<span class="pl-k">-</span><span class="pl-c1">1</span>)){
+  m<span class="pl-k">&lt;-</span>seq(<span class="pl-k">from</span><span class="pl-k">=</span><span class="pl-c1">0</span>, to<span class="pl-k">=</span>interv[k<span class="pl-k">-</span><span class="pl-c1">1</span>], by<span class="pl-k">=</span><span class="pl-c1">1</span>)
+  theta<span class="pl-k">&lt;-</span>k_mf(m)/k_mf(interv[<span class="pl-c1">1</span>])
+  temp.<span class="pl-c1">all</span><span class="pl-k">&lt;-</span>numeric()
+  <span class="pl-k">for</span>(j <span class="pl-k">in</span> <span class="pl-c1">1</span><span class="pl-k">:</span>nrow(mouse2)){
+    temp<span class="pl-k">&lt;-</span>numeric(length(theta))
+    <span class="pl-k">for</span>(i <span class="pl-k">in</span> <span class="pl-c1">1</span><span class="pl-k">:</span>length(theta)){
+      temp[i]<span class="pl-k">&lt;-</span>ret.pred(x<span class="pl-k">=</span>mouse2[j,k], y<span class="pl-k">=</span>mouse2[j,k<span class="pl-k">+</span><span class="pl-c1">1</span>],theta[i])
+    }
+    temp.<span class="pl-c1">all</span><span class="pl-k">&lt;-</span>rbind(temp.<span class="pl-c1">all</span>, temp)
+  }
+  res<span class="pl-k">&lt;-</span>cbind(res, temp.<span class="pl-c1">all</span>)
+}
+F<span class="pl-k">&lt;-</span>numeric(ncol(res))
+<span class="pl-c1">R2</span><span class="pl-k">&lt;-</span> numeric(ncol(res))
+efect<span class="pl-k">&lt;-</span> numeric(ncol(res))
+<span class="pl-k">for</span>(i <span class="pl-k">in</span> <span class="pl-c1">1</span><span class="pl-k">:</span>ncol(res)){
+  model<span class="pl-k">&lt;-</span>summary(lm(mouse2[,<span class="pl-c1">1</span>] <span class="pl-k">~</span> res[,i]))
+  print (model)
+  F[i<span class="pl-k">-</span><span class="pl-c1">1</span>]<span class="pl-k">&lt;-</span>(<span class="pl-c1">round</span>((model$fstatistic[<span class="pl-c1">1</span>]),<span class="pl-c1">2</span>))
+  <span class="pl-c1">R2</span>[i<span class="pl-k">-</span><span class="pl-c1">1</span>]<span class="pl-k">&lt;-</span> (<span class="pl-c1">round</span>((model$r.squared),<span class="pl-c1">2</span>))
+  efect[i<span class="pl-k">-</span><span class="pl-c1">1</span>]<span class="pl-k">&lt;-</span> (<span class="pl-c1">round</span>((model$coefficients[<span class="pl-c1">2</span>,<span class="pl-c1">1</span>]),<span class="pl-c1">2</span>))
+}
+F
+<span class="pl-c1">LOD</span> <span class="pl-k">&lt;-</span> (<span class="pl-c1">round</span>(((<span class="pl-c1">103</span>/<span class="pl-c1">2</span>)<span class="pl-k">*</span>(log10((F<span class="pl-k">*</span><span class="pl-c1">1</span>/<span class="pl-c1">101</span>)<span class="pl-k">+</span><span class="pl-c1">1</span>))),<span class="pl-c1">2</span>))
+<span class="pl-c1">LOD</span>
+<span class="pl-c1">R2</span><span class="pl-k">*</span><span class="pl-c1">100</span>
+efect
+plot(<span class="pl-c1">LOD</span>, type<span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">"</span>l<span class="pl-pds">"</span></span>, ylab<span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">"</span>LOD score<span class="pl-pds">"</span></span>, xlab<span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">"</span>Localização (cM)<span class="pl-pds">"</span></span>, ylim<span class="pl-k">=</span>c(<span class="pl-c1">0</span>,<span class="pl-c1">8</span>),
+     xlim<span class="pl-k">=</span>c(<span class="pl-c1">0</span>,<span class="pl-c1">50</span>), lwd<span class="pl-k">=</span><span class="pl-c1">3</span>)
+abline(h<span class="pl-k">=</span><span class="pl-c1">1.43</span>, col<span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">"</span>blue<span class="pl-pds">"</span></span>, lty<span class="pl-k">=</span><span class="pl-c1">3</span>, lwd<span class="pl-k">=</span><span class="pl-c1">3</span>)
+final<span class="pl-k">&lt;-</span>data.<span class="pl-c1">frame</span>(<span class="pl-c1">LOD</span>,<span class="pl-c1">R2</span>,efect)
+final</pre></div>
+
+<p>Resultados</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-k">&gt;</span> final
+    <span class="pl-c1">LOD</span>   <span class="pl-c1">R2</span> efect
+<span class="pl-c1">1</span>  <span class="pl-c1">3.31</span> <span class="pl-c1">0.14</span>  <span class="pl-c1">7.41</span>
+<span class="pl-c1">2</span>  <span class="pl-c1">3.69</span> <span class="pl-c1">0.15</span>  <span class="pl-c1">7.88</span>
+<span class="pl-c1">3</span>  <span class="pl-c1">4.04</span> <span class="pl-c1">0.17</span>  <span class="pl-c1">8.26</span>
+<span class="pl-c1">4</span>  <span class="pl-c1">4.36</span> <span class="pl-c1">0.18</span>  <span class="pl-c1">8.54</span>
+<span class="pl-c1">5</span>  <span class="pl-c1">4.62</span> <span class="pl-c1">0.19</span>  <span class="pl-c1">8.70</span>
+<span class="pl-c1">6</span>  <span class="pl-c1">4.82</span> <span class="pl-c1">0.19</span>  <span class="pl-c1">8.75</span>
+<span class="pl-c1">7</span>  <span class="pl-c1">4.94</span> <span class="pl-c1">0.20</span>  <span class="pl-c1">8.71</span>
+<span class="pl-c1">8</span>  <span class="pl-c1">5.02</span> <span class="pl-c1">0.20</span>  <span class="pl-c1">8.79</span>
+<span class="pl-c1">9</span>  <span class="pl-c1">5.36</span> <span class="pl-c1">0.21</span>  <span class="pl-c1">9.00</span>
+<span class="pl-c1">10</span> <span class="pl-c1">5.46</span> <span class="pl-c1">0.22</span>  <span class="pl-c1">9.10</span>
+<span class="pl-c1">11</span> <span class="pl-c1">5.80</span> <span class="pl-c1">0.23</span>  <span class="pl-c1">9.35</span>
+<span class="pl-c1">12</span> <span class="pl-c1">5.79</span> <span class="pl-c1">0.23</span>  <span class="pl-c1">9.41</span>
+<span class="pl-c1">13</span> <span class="pl-c1">5.75</span> <span class="pl-c1">0.23</span>  <span class="pl-c1">9.42</span>
+<span class="pl-c1">14</span> <span class="pl-c1">5.10</span> <span class="pl-c1">0.20</span>  <span class="pl-c1">8.80</span>
+<span class="pl-c1">15</span> <span class="pl-c1">5.31</span> <span class="pl-c1">0.21</span>  <span class="pl-c1">9.02</span>
+<span class="pl-c1">16</span> <span class="pl-c1">5.49</span> <span class="pl-c1">0.22</span>  <span class="pl-c1">9.20</span>
+<span class="pl-c1">17</span> <span class="pl-c1">5.93</span> <span class="pl-c1">0.23</span>  <span class="pl-c1">9.38</span>
+<span class="pl-c1">18</span> <span class="pl-c1">5.98</span> <span class="pl-c1">0.23</span>  <span class="pl-c1">9.53</span>
+<span class="pl-c1">19</span> <span class="pl-c1">5.96</span> <span class="pl-c1">0.23</span>  <span class="pl-c1">9.60</span>
+<span class="pl-c1">20</span> <span class="pl-c1">5.89</span> <span class="pl-c1">0.23</span>  <span class="pl-c1">9.58</span>
+<span class="pl-c1">21</span> <span class="pl-c1">5.76</span> <span class="pl-c1">0.23</span>  <span class="pl-c1">9.47</span>
+<span class="pl-c1">22</span> <span class="pl-c1">5.13</span> <span class="pl-c1">0.20</span>  <span class="pl-c1">8.78</span>
+<span class="pl-c1">23</span> <span class="pl-c1">5.33</span> <span class="pl-c1">0.21</span>  <span class="pl-c1">9.00</span>
+<span class="pl-c1">24</span> <span class="pl-c1">5.50</span> <span class="pl-c1">0.22</span>  <span class="pl-c1">9.18</span>
+<span class="pl-c1">25</span> <span class="pl-c1">5.63</span> <span class="pl-c1">0.22</span>  <span class="pl-c1">9.29</span>
+<span class="pl-c1">26</span> <span class="pl-c1">5.73</span> <span class="pl-c1">0.23</span>  <span class="pl-c1">9.15</span>
+<span class="pl-c1">27</span> <span class="pl-c1">5.70</span> <span class="pl-c1">0.23</span>  <span class="pl-c1">9.16</span>
+<span class="pl-c1">28</span> <span class="pl-c1">5.34</span> <span class="pl-c1">0.21</span>  <span class="pl-c1">8.87</span>
+<span class="pl-c1">29</span> <span class="pl-c1">5.42</span> <span class="pl-c1">0.22</span>  <span class="pl-c1">8.97</span>
+<span class="pl-c1">30</span> <span class="pl-c1">5.50</span> <span class="pl-c1">0.22</span>  <span class="pl-c1">8.98</span>
+<span class="pl-c1">31</span> <span class="pl-c1">5.55</span> <span class="pl-c1">0.22</span>  <span class="pl-c1">9.06</span>
+<span class="pl-c1">32</span> <span class="pl-c1">5.39</span> <span class="pl-c1">0.21</span>  <span class="pl-c1">8.90</span>
+<span class="pl-c1">33</span> <span class="pl-c1">5.22</span> <span class="pl-c1">0.21</span>  <span class="pl-c1">8.84</span>
+<span class="pl-c1">34</span> <span class="pl-c1">5.02</span> <span class="pl-c1">0.20</span>  <span class="pl-c1">8.73</span>
+<span class="pl-c1">35</span> <span class="pl-c1">3.81</span> <span class="pl-c1">0.16</span>  <span class="pl-c1">7.61</span>
+<span class="pl-c1">36</span> <span class="pl-c1">3.94</span> <span class="pl-c1">0.16</span>  <span class="pl-c1">7.86</span>
+<span class="pl-c1">37</span> <span class="pl-c1">4.02</span> <span class="pl-c1">0.16</span>  <span class="pl-c1">8.03</span>
+<span class="pl-c1">38</span> <span class="pl-c1">4.05</span> <span class="pl-c1">0.17</span>  <span class="pl-c1">8.11</span>
+<span class="pl-c1">39</span> <span class="pl-c1">4.03</span> <span class="pl-c1">0.16</span>  <span class="pl-c1">8.09</span>
+<span class="pl-c1">40</span> <span class="pl-c1">3.95</span> <span class="pl-c1">0.16</span>  <span class="pl-c1">7.97</span>
+<span class="pl-c1">41</span> <span class="pl-c1">3.83</span> <span class="pl-c1">0.16</span>  <span class="pl-c1">7.76</span>
+<span class="pl-c1">42</span> <span class="pl-c1">3.71</span> <span class="pl-c1">0.15</span>  <span class="pl-c1">7.54</span>
+<span class="pl-c1">43</span> <span class="pl-c1">3.62</span> <span class="pl-c1">0.15</span>  <span class="pl-c1">7.66</span>
+<span class="pl-c1">44</span> <span class="pl-c1">3.46</span> <span class="pl-c1">0.14</span>  <span class="pl-c1">7.63</span>
+<span class="pl-c1">45</span> <span class="pl-c1">3.23</span> <span class="pl-c1">0.13</span>  <span class="pl-c1">7.46</span>
+<span class="pl-c1">46</span> <span class="pl-c1">2.94</span> <span class="pl-c1">0.12</span>  <span class="pl-c1">7.13</span>
+<span class="pl-c1">47</span> <span class="pl-c1">2.62</span> <span class="pl-c1">0.11</span>  <span class="pl-c1">6.68</span>
+<span class="pl-c1">48</span> <span class="pl-c1">2.28</span> <span class="pl-c1">0.10</span>  <span class="pl-c1">6.13</span>
+<span class="pl-c1">49</span> <span class="pl-c1">1.95</span> <span class="pl-c1">0.08</span>  <span class="pl-c1">5.53</span>
+<span class="pl-c1">50</span> <span class="pl-c1">1.64</span> <span class="pl-c1">0.07</span>  <span class="pl-c1">4.91</span>
+<span class="pl-c1">51</span> <span class="pl-c1">1.36</span> <span class="pl-c1">0.06</span>  <span class="pl-c1">4.32</span>
+<span class="pl-c1">52</span> <span class="pl-c1">1.11</span> <span class="pl-c1">0.05</span>  <span class="pl-c1">3.75</span>
+<span class="pl-c1">53</span> <span class="pl-c1">0.00</span> <span class="pl-c1">0.00</span>  <span class="pl-c1">0.00</span></pre></div>
+
+<p><img src="https://cloud.githubusercontent.com/assets/12297507/8116095/693d5d04-1056-11e5-88e3-54d162f7e49b.jpeg" alt="Gráfico LOD"></p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/ThaGodoy/exercicio_aula9">Exercicio aula9</a> is maintained by <a href="https://github.com/ThaGodoy">ThaGodoy</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
+
